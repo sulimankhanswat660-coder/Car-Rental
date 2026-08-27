@@ -149,7 +149,7 @@ function CarBooking({ car }) {
     // ----------------------------------------
 
     if (!currentUser) {
-      navigate("/signin");
+      navigate("/signup");
       return;
     }
 
