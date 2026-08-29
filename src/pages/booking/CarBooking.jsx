@@ -46,13 +46,11 @@ function CarBooking({ car }) {
 
   const [isAvailable, setIsAvailable] = useState(false);
 
-  const [showCustomerForm, setShowCustomerForm] =
-    useState(false);
+  const [showCustomerForm, setShowCustomerForm] = useState(false);
 
   const [showSummary, setShowSummary] = useState(false);
 
-  const [bookingDetails, setBookingDetails] =
-    useState(null);
+  const [bookingDetails, setBookingDetails] = useState(null);
 
   // ==========================================
   // REACT HOOK FORM
@@ -60,6 +58,7 @@ function CarBooking({ car }) {
 
   const {
     register,
+    control, // add this line
     handleSubmit,
     watch,
     reset,
@@ -67,6 +66,8 @@ function CarBooking({ car }) {
     setValue,
     formState: { errors },
   } = useForm({
+    mode: "onChange",
+
     defaultValues: {
       name: "",
       email: "",
@@ -90,15 +91,9 @@ function CarBooking({ car }) {
   // ==========================================
 
   const loadUserData = () => {
-    const name =
-      userData?.name ||
-      currentUser?.displayName ||
-      "";
+    const name = userData?.name || currentUser?.displayName || "";
 
-    const email =
-      userData?.email ||
-      currentUser?.email ||
-      "";
+    const email = userData?.email || currentUser?.email || "";
 
     // IMPORTANT:
     // setValue updates React Hook Form values
@@ -127,9 +122,7 @@ function CarBooking({ car }) {
       >
         <CircularProgress />
 
-        <Typography sx={{ mt: 2 }}>
-          Loading car information...
-        </Typography>
+        <Typography sx={{ mt: 2 }}>Loading car information...</Typography>
       </Box>
     );
   }
@@ -156,27 +149,15 @@ function CarBooking({ car }) {
     setLoading(true);
 
     try {
-      const bookingsRef = collection(
-        db,
-        "bookings"
-      );
+      const bookingsRef = collection(db, "bookings");
 
-      const bookingQuery = query(
-        bookingsRef,
-        where("carId", "==", car.id)
-      );
+      const bookingQuery = query(bookingsRef, where("carId", "==", car.id));
 
-      const snapshot = await getDocs(
-        bookingQuery
-      );
+      const snapshot = await getDocs(bookingQuery);
 
-      const selectedPickup = new Date(
-        `${data.pickupDate}T00:00:00`
-      );
+      const selectedPickup = new Date(`${data.pickupDate}T00:00:00`);
 
-      const selectedReturn = new Date(
-        `${data.returnDate}T00:00:00`
-      );
+      const selectedReturn = new Date(`${data.returnDate}T00:00:00`);
 
       let alreadyBooked = false;
 
@@ -194,20 +175,13 @@ function CarBooking({ car }) {
           return;
         }
 
-        if (
-          !booking.pickupDate ||
-          !booking.returnDate
-        ) {
+        if (!booking.pickupDate || !booking.returnDate) {
           return;
         }
 
-        const existingPickup = new Date(
-          `${booking.pickupDate}T00:00:00`
-        );
+        const existingPickup = new Date(`${booking.pickupDate}T00:00:00`);
 
-        const existingReturn = new Date(
-          `${booking.returnDate}T00:00:00`
-        );
+        const existingReturn = new Date(`${booking.returnDate}T00:00:00`);
 
         // --------------------------------------
         // OVERLAP CHECK
@@ -219,10 +193,7 @@ function CarBooking({ car }) {
         ) {
           alreadyBooked = true;
 
-          if (
-            !bookedUntil ||
-            existingReturn > bookedUntil
-          ) {
+          if (!bookedUntil || existingReturn > bookedUntil) {
             bookedUntil = existingReturn;
           }
         }
@@ -233,18 +204,14 @@ function CarBooking({ car }) {
       // ----------------------------------------
 
       if (alreadyBooked) {
-        const date =
-          bookedUntil.toLocaleDateString(
-            "en-GB",
-            {
-              day: "2-digit",
-              month: "short",
-              year: "numeric",
-            }
-          );
+        const date = bookedUntil.toLocaleDateString("en-GB", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        });
 
         setError(
-          `This car is already rented until ${date}. Please select different dates.`
+          `This car is already rented until ${date}. Please select different dates.`,
         );
 
         return;
@@ -272,14 +239,9 @@ function CarBooking({ car }) {
 
       setIsAvailable(true);
     } catch (error) {
-      console.error(
-        "Availability error:",
-        error
-      );
+      console.error("Availability error:", error);
 
-      setError(
-        "Something went wrong while checking availability."
-      );
+      setError("Something went wrong while checking availability.");
     } finally {
       setLoading(false);
     }
@@ -295,24 +257,15 @@ function CarBooking({ car }) {
     setSuccess("");
 
     try {
-      const selectedPickup = new Date(
-        `${data.pickupDate}T00:00:00`
-      );
+      const selectedPickup = new Date(`${data.pickupDate}T00:00:00`);
 
-      const selectedReturn = new Date(
-        `${data.returnDate}T00:00:00`
-      );
+      const selectedReturn = new Date(`${data.returnDate}T00:00:00`);
 
-      const difference =
-        selectedReturn - selectedPickup;
+      const difference = selectedReturn - selectedPickup;
 
-      const days = Math.ceil(
-        difference /
-          (1000 * 60 * 60 * 24)
-      );
+      const days = Math.ceil(difference / (1000 * 60 * 60 * 24));
 
-      const totalPrice =
-        days * Number(car.price);
+      const totalPrice = days * Number(car.price);
 
       setBookingDetails((previous) => ({
         ...previous,
@@ -335,34 +288,24 @@ function CarBooking({ car }) {
 
         country: data.country.trim(),
 
-        licenseNumber:
-          data.licenseNumber.trim(),
+        licenseNumber: data.licenseNumber.trim(),
 
-        licenseExpiry:
-          data.licenseExpiry,
+        licenseExpiry: data.licenseExpiry,
 
-        pickupLocation:
-          data.pickupLocation.trim(),
+        pickupLocation: data.pickupLocation.trim(),
 
-        returnLocation:
-          data.returnLocation.trim(),
+        returnLocation: data.returnLocation.trim(),
 
-        specialRequest:
-          data.specialRequest.trim(),
+        specialRequest: data.specialRequest.trim(),
       }));
 
       setShowCustomerForm(false);
 
       setShowSummary(true);
     } catch (error) {
-      console.error(
-        "Booking details error:",
-        error
-      );
+      console.error("Booking details error:", error);
 
-      setError(
-        "Unable to prepare your booking."
-      );
+      setError("Unable to prepare your booking.");
     }
   };
 
@@ -372,31 +315,18 @@ function CarBooking({ car }) {
   // ==========================================
 
   const checkFinalAvailability = async () => {
-    const bookingsRef = collection(
-      db,
-      "bookings"
-    );
+    const bookingsRef = collection(db, "bookings");
 
     const bookingQuery = query(
       bookingsRef,
-      where(
-        "carId",
-        "==",
-        bookingDetails.carId
-      )
+      where("carId", "==", bookingDetails.carId),
     );
 
-    const snapshot = await getDocs(
-      bookingQuery
-    );
+    const snapshot = await getDocs(bookingQuery);
 
-    const selectedPickup = new Date(
-      `${bookingDetails.pickupDate}T00:00:00`
-    );
+    const selectedPickup = new Date(`${bookingDetails.pickupDate}T00:00:00`);
 
-    const selectedReturn = new Date(
-      `${bookingDetails.returnDate}T00:00:00`
-    );
+    const selectedReturn = new Date(`${bookingDetails.returnDate}T00:00:00`);
 
     let alreadyBooked = false;
 
@@ -409,20 +339,13 @@ function CarBooking({ car }) {
         return;
       }
 
-      if (
-        !booking.pickupDate ||
-        !booking.returnDate
-      ) {
+      if (!booking.pickupDate || !booking.returnDate) {
         return;
       }
 
-      const existingPickup = new Date(
-        `${booking.pickupDate}T00:00:00`
-      );
+      const existingPickup = new Date(`${booking.pickupDate}T00:00:00`);
 
-      const existingReturn = new Date(
-        `${booking.returnDate}T00:00:00`
-      );
+      const existingReturn = new Date(`${booking.returnDate}T00:00:00`);
 
       if (
         selectedPickup <= existingReturn &&
@@ -430,10 +353,7 @@ function CarBooking({ car }) {
       ) {
         alreadyBooked = true;
 
-        if (
-          !bookedUntil ||
-          existingReturn > bookedUntil
-        ) {
+        if (!bookedUntil || existingReturn > bookedUntil) {
           bookedUntil = existingReturn;
         }
       }
@@ -460,9 +380,7 @@ function CarBooking({ car }) {
     }
 
     if (!bookingDetails) {
-      setError(
-        "Booking information is missing."
-      );
+      setError("Booking information is missing.");
 
       return;
     }
@@ -474,29 +392,21 @@ function CarBooking({ car }) {
       // FINAL AVAILABILITY CHECK
       // --------------------------------------
 
-      const {
-        alreadyBooked,
-        bookedUntil,
-      } =
-        await checkFinalAvailability();
+      const { alreadyBooked, bookedUntil } = await checkFinalAvailability();
 
       // --------------------------------------
       // CAR BECAME UNAVAILABLE
       // --------------------------------------
 
       if (alreadyBooked) {
-        const date =
-          bookedUntil.toLocaleDateString(
-            "en-GB",
-            {
-              day: "2-digit",
-              month: "short",
-              year: "numeric",
-            }
-          );
+        const date = bookedUntil.toLocaleDateString("en-GB", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        });
 
         setError(
-          `Sorry, this car was just booked until ${date}. Please select different dates.`
+          `Sorry, this car was just booked until ${date}. Please select different dates.`,
         );
 
         setShowSummary(false);
@@ -514,10 +424,7 @@ function CarBooking({ car }) {
       // SAVE BOOKING
       // --------------------------------------
 
-      const bookingsRef = collection(
-        db,
-        "bookings"
-      );
+      const bookingsRef = collection(db, "bookings");
 
       await addDoc(bookingsRef, {
         carId: bookingDetails.carId,
@@ -526,74 +433,54 @@ function CarBooking({ car }) {
 
         carImage: bookingDetails.carImage,
 
-        pricePerDay:
-          bookingDetails.pricePerDay,
+        pricePerDay: bookingDetails.pricePerDay,
 
-        pickupDate:
-          bookingDetails.pickupDate,
+        pickupDate: bookingDetails.pickupDate,
 
-        returnDate:
-          bookingDetails.returnDate,
+        returnDate: bookingDetails.returnDate,
 
         days: bookingDetails.days,
 
         totalDays: bookingDetails.days,
 
-        totalPrice:
-          bookingDetails.totalPrice,
+        totalPrice: bookingDetails.totalPrice,
 
-        userId:
-          bookingDetails.userId,
+        userId: bookingDetails.userId,
 
-        userName:
-          bookingDetails.name,
+        userName: bookingDetails.name,
 
-        userEmail:
-          bookingDetails.email,
+        userEmail: bookingDetails.email,
 
-        phone:
-          bookingDetails.phone,
+        phone: bookingDetails.phone,
 
-        dateOfBirth:
-          bookingDetails.dateOfBirth,
+        dateOfBirth: bookingDetails.dateOfBirth,
 
-        address:
-          bookingDetails.address,
+        address: bookingDetails.address,
 
-        city:
-          bookingDetails.city,
+        city: bookingDetails.city,
 
-        country:
-          bookingDetails.country,
+        country: bookingDetails.country,
 
-        licenseNumber:
-          bookingDetails.licenseNumber,
+        licenseNumber: bookingDetails.licenseNumber,
 
-        licenseExpiry:
-          bookingDetails.licenseExpiry,
+        licenseExpiry: bookingDetails.licenseExpiry,
 
-        pickupLocation:
-          bookingDetails.pickupLocation,
+        pickupLocation: bookingDetails.pickupLocation,
 
-        returnLocation:
-          bookingDetails.returnLocation,
+        returnLocation: bookingDetails.returnLocation,
 
-        specialRequest:
-          bookingDetails.specialRequest,
+        specialRequest: bookingDetails.specialRequest,
 
         status: "confirmed",
 
-        createdAt:
-          serverTimestamp(),
+        createdAt: serverTimestamp(),
       });
 
       // --------------------------------------
       // SUCCESS
       // --------------------------------------
 
-      setSuccess(
-        "Your car has been booked successfully!"
-      );
+      setSuccess("Your car has been booked successfully!");
 
       setShowSummary(false);
 
@@ -608,15 +495,9 @@ function CarBooking({ car }) {
       // --------------------------------------
 
       reset({
-        name:
-          userData?.name ||
-          currentUser?.displayName ||
-          "",
+        name: userData?.name || currentUser?.displayName || "",
 
-        email:
-          userData?.email ||
-          currentUser?.email ||
-          "",
+        email: userData?.email || currentUser?.email || "",
 
         phone: "",
 
@@ -643,14 +524,9 @@ function CarBooking({ car }) {
         specialRequest: "",
       });
     } catch (error) {
-      console.error(
-        "Booking error:",
-        error
-      );
+      console.error("Booking error:", error);
 
-      setError(
-        "Something went wrong while confirming your booking."
-      );
+      setError("Something went wrong while confirming your booking.");
     } finally {
       setConfirming(false);
     }
@@ -674,8 +550,7 @@ function CarBooking({ car }) {
 
         backgroundColor: "#fff",
 
-        border:
-          "1px solid #e5e7eb",
+        border: "1px solid #e5e7eb",
       }}
     >
       {/* =====================================
@@ -716,10 +591,7 @@ function CarBooking({ car }) {
       ===================================== */}
 
       {error && (
-        <Alert
-          severity="error"
-          sx={{ mb: 3 }}
-        >
+        <Alert severity="error" sx={{ mb: 3 }}>
           {error}
         </Alert>
       )}
@@ -729,10 +601,7 @@ function CarBooking({ car }) {
       ===================================== */}
 
       {success && (
-        <Alert
-          severity="success"
-          sx={{ mb: 3 }}
-        >
+        <Alert severity="success" sx={{ mb: 3 }}>
           {success}
         </Alert>
       )}
@@ -742,97 +611,89 @@ function CarBooking({ car }) {
           RENTAL DATES
       ===================================== */}
 
-      {!isAvailable &&
-        !showCustomerForm &&
-        !showSummary && (
-          <BookingForm
-            register={register}
-            errors={errors}
-            watch={watch}
-            handleSubmit={handleSubmit}
-            onSubmit={checkAvailability}
-            loading={loading}
-          />
-        )}
+      {!isAvailable && !showCustomerForm && !showSummary && (
+        <BookingForm
+          register={register}
+          control={control}
+          errors={errors}
+          watch={watch}
+          handleSubmit={handleSubmit}
+          onSubmit={checkAvailability}
+          loading={loading}
+        />
+      )}
 
       {/* =====================================
           STEP 2
           CAR AVAILABLE
       ===================================== */}
 
-      {isAvailable &&
-        !showCustomerForm &&
-        !showSummary && (
-          <Box>
-            <Alert
-              severity="success"
-              sx={{ mb: 3 }}
-            >
-              Great! This car is available
-              for your selected dates.
-            </Alert>
+      {isAvailable && !showCustomerForm && !showSummary && (
+        <Box>
+          <Alert severity="success" sx={{ mb: 3 }}>
+            Great! This car is available for your selected dates.
+          </Alert>
 
-            <Button
-              fullWidth
-              variant="contained"
-              color="success"
-              onClick={() => {
-                // IMPORTANT:
-                // Load name/email before
-                // opening customer form.
-                loadUserData();
+          <Button
+            fullWidth
+            variant="contained"
+            color="success"
+            onClick={() => {
+              // IMPORTANT:
+              // Load name/email before
+              // opening customer form.
+              loadUserData();
 
-                setShowCustomerForm(true);
-              }}
-              sx={{
-                py: 1.5,
-                borderRadius: 2,
-                textTransform: "none",
-                fontWeight: 700,
-              }}
-            >
-              Book Now
-            </Button>
-          </Box>
-        )}
+              setShowCustomerForm(true);
+            }}
+            sx={{
+              py: 1.5,
+              borderRadius: 2,
+              textTransform: "none",
+              fontWeight: 700,
+            }}
+          >
+            Book Now
+          </Button>
+        </Box>
+      )}
 
       {/* =====================================
           STEP 3
           CUSTOMER INFORMATION
       ===================================== */}
 
-      {showCustomerForm &&
-        !showSummary && (
-          <CustomerForm
-            register={register}
-            errors={errors}
-            handleSubmit={handleSubmit}
-            onSubmit={createBookingDetails}
-            loading={loading}
-          />
-        )}
+      {showCustomerForm && !showSummary && (
+        <CustomerForm
+          register={register}
+          control={control}
+          errors={errors}
+          handleSubmit={handleSubmit}
+          onSubmit={createBookingDetails}
+          loading={loading}
+        />
+      )}
 
       {/* =====================================
           STEP 4
           SUMMARY
       ===================================== */}
 
-      {showSummary &&
-        bookingDetails && (
-          <BookingSummary
-            bookingDetails={bookingDetails}
-            confirming={confirming}
-            onConfirm={confirmBooking}
-            onChange={() => {
-              setShowSummary(false);
+      {showSummary && bookingDetails && (
+        <BookingSummary
+          bookingDetails={bookingDetails}
+          confirming={confirming}
+          onConfirm={confirmBooking}
+          onChange={() => {
+            setShowSummary(false);
 
-              setShowCustomerForm(true);
+            setShowCustomerForm(true);
 
-              // Keep name/email filled
-              loadUserData();
-            }}
-          />
-        )}
+            // Keep name/email filled
+            loadUserData();
+          }}
+        />
+      )}
     </Box>
   );
 }
