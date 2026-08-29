@@ -111,9 +111,12 @@ function CustomerForm({
             <DatePicker
               label="Date of Birth"
               value={field.value ? dayjs(field.value) : null}
-              onChange={(date) =>
-                field.onChange(date ? date.format("YYYY-MM-DD") : "")
-              }
+              onChange={(date) => {
+                // Do not clear the input while the user is still typing a date.
+                if (date && dayjs(date).isValid()) {
+                  field.onChange(date.format("YYYY-MM-DD"));
+                }
+              }}
               maxDate={dayjs().subtract(1, "day")}
               disableFuture
               format="DD/MM/YYYY"

@@ -77,59 +77,61 @@ function BookingForm({
         {/* RETURN DATE */}
 
         <Controller
-  name="returnDate"
-  control={control}
-  rules={{
-    required: "Return date is required",
-    validate: (value) => {
-      if (!value) return true;
+          name="returnDate"
+          control={control}
+          rules={{
+            required: "Return date is required",
+            validate: (value) => {
+              if (!value) return true;
 
-      const pickupDate = watch("pickupDate");
-      const selectedReturn = dayjs(value).startOf("day");
-      const today = dayjs().startOf("day");
+              const pickupDate = watch("pickupDate");
+              const selectedReturn = dayjs(value).startOf("day");
+              const today = dayjs().startOf("day");
 
-      if (selectedReturn.isBefore(today, "day")) {
-        return "Return date cannot be in the past";
-      }
+              if (selectedReturn.isBefore(today, "day")) {
+                return "Return date cannot be in the past";
+              }
 
-      if (
-        pickupDate &&
-        !selectedReturn.isAfter(dayjs(pickupDate), "day")
-      ) {
-        return "Return date must be after the pickup date";
-      }
+              if (
+                pickupDate &&
+                !selectedReturn.isAfter(dayjs(pickupDate), "day")
+              ) {
+                return "Return date must be after the pickup date";
+              }
 
-      return true;
-    },
-  }}
-  render={({ field }) => {
-    const pickupDate = watch("pickupDate");
+              return true;
+            },
+          }}
+          render={({ field }) => {
+            const pickupDate = watch("pickupDate");
 
-    return (
-      <DatePicker
-        label="Return Date"
-        value={field.value ? dayjs(field.value) : null}
-        onChange={(date) =>
-          field.onChange(date ? date.format("YYYY-MM-DD") : "")
-        }
-        minDate={
-          pickupDate
-            ? dayjs(pickupDate).add(1, "day")
-            : dayjs().startOf("day")
-        }
-        disablePast
-        format="DD/MM/YYYY"
-        slotProps={{
-          textField: {
-            fullWidth: true,
-            error: Boolean(errors.returnDate),
-            helperText: errors.returnDate?.message,
-          },
-        }}
-      />
-    );
-  }}
-/>
+            return (
+              <DatePicker
+                label="Return Date"
+                value={field.value ? dayjs(field.value) : null}
+                onChange={(date) => {
+                  if (date && dayjs(date).isValid()) {
+                    field.onChange(date.format("YYYY-MM-DD"));
+                  }
+                }}
+                minDate={
+                  pickupDate
+                    ? dayjs(pickupDate).add(1, "day")
+                    : dayjs().startOf("day")
+                }
+                disablePast
+                format="DD/MM/YYYY"
+                slotProps={{
+                  textField: {
+                    fullWidth: true,
+                    error: Boolean(errors.returnDate),
+                    helperText: errors.returnDate?.message,
+                  },
+                }}
+              />
+            );
+          }}
+        />
       </Stack>
 
       {/* CHECK AVAILABILITY BUTTON */}
